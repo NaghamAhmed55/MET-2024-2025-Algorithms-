@@ -1,0 +1,55 @@
+from collections import defaultdict
+
+# البيانات
+conflict_table = [
+    {"sub_id": 100, "conflict_sub_id": 200, "NumOfInterection": 10},
+    {"sub_id": 200, "conflict_sub_id": 300, "NumOfInterection": 15},
+    {"sub_id": 100, "conflict_sub_id": 300, "NumOfInterection": 20},
+]
+
+levels = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3},
+]
+
+# بناء الرسم البياني
+graph = defaultdict(list)
+for conflict in conflict_table:
+    graph[conflict["sub_id"]].append(conflict["conflict_sub_id"])
+    graph[conflict["conflict_sub_id"]].append(conflict["sub_id"])
+
+# خوارزمية تلوين الرسم البياني
+def graph_coloring(graph, num_nodes):
+    colors = {}
+    for node in sorted(graph, key=lambda x: len(graph[x]), reverse=True):
+        # إيجاد الألوان المستخدمة في الجيران
+        neighbor_colors = {colors[neighbor] for neighbor in graph[node] if neighbor in colors}
+        # تعيين أقل لون متاح
+        color = 1
+        while color in neighbor_colors:
+            color += 1
+        colors[node] = color
+    return colors
+
+# تطبيق التلوين
+colors = graph_coloring(graph, len(levels))
+
+# حساب التكلفة النهائية
+def calculate_final_cost(conflict_table, colors):
+    cost = 0
+    for conflict in conflict_table:
+        sub1_color = colors[conflict["sub_id"]]
+        sub2_color = colors[conflict["conflict_sub_id"]]
+        cost += abs(sub1_color - sub2_color) * conflict["NumOfInterection"]
+    return cost
+
+# حساب التكلفة النهائية
+final_cost = calculate_final_cost(conflict_table, colors)
+
+# عرض النتائج
+print("جدولة الامتحانات (الأيام لكل مادة):")
+for sub_id, color in sorted(colors.items()):
+    print(f"المادة {sub_id} → اليوم {color}")
+
+print("\nالتكلفة النهائية:", final_cost)
